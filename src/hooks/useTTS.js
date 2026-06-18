@@ -11,7 +11,7 @@ export const useTTS = () => {
     
     const utterance = new SpeechSynthesisUtterance(text.trim());
     utterance.lang = 'id-ID';
-    utterance.rate = 1.6;
+    utterance.rate = 1.1;
     
     utterancesRef.current.push(utterance);
 
