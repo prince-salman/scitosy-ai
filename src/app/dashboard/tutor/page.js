@@ -21,7 +21,6 @@ export default function AITutor() {
       
       recognitionRef.current.onstart = () => {
         setIsListening(true);
-        // Bunyikan beep kecil bisa dilakukan, tapi kita gunakan TTS
       };
       
       recognitionRef.current.onresult = (event) => {
@@ -41,25 +40,75 @@ export default function AITutor() {
     }
   }, []);
 
-  const handleAIResponse = (text) => {
+  const handleAIResponse = async (text) => {
     const lowerText = text.toLowerCase();
-    let reply = "Maaf, saya tidak menemukan materi tersebut di database. Coba tanyakan tentang Sejarah Proklamasi, Matematika Bilangan Bulat, atau IPA Tata Surya.";
     
-    if (lowerText.includes('proklamasi') || lowerText.includes('kemerdekaan') || lowerText.includes('soekarno')) {
-      reply = "Tentu! Proklamasi kemerdekaan Indonesia dibacakan pada tanggal 17 Agustus 1945 oleh Soekarno dan Hatta. Apakah Anda ingin berlatih soal sejarah ini?";
-    } else if (lowerText.includes('bilangan') || lowerText.includes('matematika')) {
-      reply = "Baik. Bilangan bulat terdiri dari bilangan positif, nol, dan negatif. Jika kamu menjumlahkan dua bilangan dengan tanda yang sama, hasilnya akan mempertahankan tanda tersebut. Mau coba satu soal hitungan?";
-    } else if (lowerText.includes('tata surya') || lowerText.includes('planet') || lowerText.includes('bumi')) {
-      reply = "Tata surya kita berpusat pada Matahari. Bumi adalah planet ketiga, satu-satunya yang diketahui memiliki suhu ideal untuk menopang kehidupan.";
-    } else if (lowerText.includes('halo') || lowerText.includes('hai')) {
-      reply = "Halo! Saya adalah Tutor cerdas Anda. Hari ini kita mau belajar apa?";
-    } else if (lowerText.includes('siapa namamu') || lowerText.includes('kamu siapa')) {
-      reply = "Saya adalah asisten AI dari SCITOSY. Saya di sini untuk menemani Anda belajar.";
+    const sendReply = (reply) => {
+      setAiResponse(reply);
+      stop();
+      setTimeout(() => speak(reply), 500);
+    };
+
+    // 1. Percakapan Kasual & Sapaan
+    if (lowerText === 'halo' || lowerText === 'hai' || lowerText.includes('halo tutor')) {
+      return sendReply("Halo! Saya adalah Tutor AI pintar Anda. Ada pertanyaan seputar pelajaran hari ini?");
+    } 
+    
+    if (lowerText.includes('siapa namamu') || lowerText.includes('kamu siapa') || lowerText.includes('dibuat oleh')) {
+      return sendReply("Saya adalah asisten AI dari SCITOSY. Saya dirancang khusus untuk mempermudah Anda belajar dengan cepat.");
     }
 
-    setAiResponse(reply);
-    stop();
-    setTimeout(() => speak(reply), 500);
+    // 2. Ekstrak subjek untuk pencarian API Ensiklopedia Real-Time
+    // Menghapus kata tanya umum agar tersisa kata kuncinya saja
+    let keyword = text.replace(/(apa itu|siapa itu|jelaskan tentang|pengertian dari|yang dimaksud dengan|bagaimana|ceritakan tentang|apa yang dimaksud|tolong jelaskan|apa arti|siapakah|apa|itu)/gi, '').trim();
+    
+    if (!keyword) {
+      return sendReply("Coba tanyakan sesuatu yang spesifik, misalnya 'Apa itu matahari?' atau 'Siapa Soekarno?'");
+    }
+
+    sendReply("Sebentar, saya cari informasinya...");
+
+    // Format kata kunci (huruf kapital di awal kata) untuk Wikipedia
+    const searchTopic = encodeURIComponent(keyword.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('_'));
+
+    try {
+      // Mengambil data dari Wikipedia Bahasa Indonesia secara gratis & instan
+      const res = await fetch(`https://id.wikipedia.org/api/rest_v1/page/summary/${searchTopic}`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.extract) {
+          // Ambil maksimal 2-3 kalimat pertama agar tidak terlalu panjang dibacakan
+          const sentences = data.extract.split('. ');
+          let finalReply = sentences.slice(0, 2).join('. ');
+          if (!finalReply.endsWith('.')) finalReply += '.';
+          
+          return sendReply(finalReply);
+        }
+      } else {
+        // Coba pencarian sekunder jika format judul Wikipedia tidak pas persis
+        const searchRes = await fetch(`https://id.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(keyword)}&utf8=&format=json&origin=*`);
+        const searchData = await searchRes.json();
+        
+        if (searchData.query && searchData.query.search.length > 0) {
+          const firstHitTitle = searchData.query.search[0].title;
+          const detailRes = await fetch(`https://id.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstHitTitle.replace(/ /g, '_'))}`);
+          const detailData = await detailRes.json();
+          
+          if (detailData.extract) {
+            const sentences = detailData.extract.split('. ');
+            let finalReply = sentences.slice(0, 2).join('. ');
+            if (!finalReply.endsWith('.')) finalReply += '.';
+            return sendReply(finalReply);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("API Error", e);
+    }
+
+    // 3. Fallback jika gagal mencari di internet
+    return sendReply(`Maaf, saya tidak dapat menemukan informasi akurat mengenai ${keyword} saat ini. Coba tanyakan topik lain.`);
   };
 
   const toggleListen = () => {
@@ -68,7 +117,6 @@ export default function AITutor() {
       speak('Perekaman dihentikan.');
     } else {
       stop();
-      // Speak first, then start listening after a delay
       speak('Silakan bertanya.');
       setTimeout(() => {
         try {
@@ -82,9 +130,9 @@ export default function AITutor() {
     <div className="p-8 md:p-12 lg:p-16 flex flex-col h-full min-h-[calc(100vh-48px)]">
       <header className="mb-8" tabIndex={0} onFocus={() => speak('Halaman Tutor AI. Gunakan mikrofon untuk berdiskusi soal materi.')}>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-950 mb-3 flex items-center gap-3">
-          <Bot className="text-lilac" /> Tutor AI Suara
+          <Bot className="text-lilac" /> Tutor AI Pintar
         </h1>
-        <p className="text-zinc-500 text-lg">Ngobrol langsung dengan AI untuk membahas materi pelajaran secara lisan.</p>
+        <p className="text-zinc-500 text-lg">Ngobrol langsung dan tanyakan materi apapun, AI akan mencari jawabannya secara seketika.</p>
       </header>
 
       <div className="flex-1 flex flex-col gap-6 max-w-3xl">
@@ -110,7 +158,7 @@ export default function AITutor() {
           <div className="flex flex-col gap-4 mt-4">
             {userTranscript && (
               <div className="bg-zinc-100 rounded-2xl rounded-tl-none p-4 w-3/4 self-start border border-zinc-200" tabIndex={0} onFocus={() => speak(`Anda berkata: ${userTranscript}`)}>
-                <p className="text-xs font-semibold text-zinc-500 mb-1">Anda berkata:</p>
+                <p className="text-xs font-semibold text-zinc-500 mb-1">Anda bertanya:</p>
                 <p className="text-zinc-800">{userTranscript}</p>
               </div>
             )}
