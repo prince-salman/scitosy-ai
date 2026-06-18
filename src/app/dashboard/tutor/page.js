@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTTS } from '@/hooks/useTTS';
-import { Card, Button } from '@/components/ui';
-import { Bot, Mic, MicOff, MessageSquare } from 'lucide-react';
+import { Card } from '@/components/ui';
+import { Bot, Mic, MicOff } from 'lucide-react';
 
 export default function AITutor() {
   const [isListening, setIsListening] = useState(false);
@@ -41,74 +41,41 @@ export default function AITutor() {
   }, []);
 
   const handleAIResponse = async (text) => {
-    const lowerText = text.toLowerCase();
-    
     const sendReply = (reply) => {
       setAiResponse(reply);
       stop();
       setTimeout(() => speak(reply), 500);
     };
 
-    // 1. Percakapan Kasual & Sapaan
-    if (lowerText === 'halo' || lowerText === 'hai' || lowerText.includes('halo tutor')) {
-      return sendReply("Halo! Saya adalah Tutor AI pintar Anda. Ada pertanyaan seputar pelajaran hari ini?");
-    } 
-    
-    if (lowerText.includes('siapa namamu') || lowerText.includes('kamu siapa') || lowerText.includes('dibuat oleh')) {
-      return sendReply("Saya adalah asisten AI dari SCITOSY. Saya dirancang khusus untuk mempermudah Anda belajar dengan cepat.");
+    // Respon lokal super cepat untuk sapaan dasar
+    const lowerText = text.toLowerCase();
+    if (lowerText === 'halo' || lowerText === 'hai') {
+      return sendReply("Halo! Saya adalah Tutor AI pintar Anda. Ada pertanyaan pelajaran apa hari ini?");
     }
 
-    // 2. Ekstrak subjek untuk pencarian API Ensiklopedia Real-Time
-    // Menghapus kata tanya umum agar tersisa kata kuncinya saja
-    let keyword = text.replace(/(apa itu|siapa itu|jelaskan tentang|pengertian dari|yang dimaksud dengan|bagaimana|ceritakan tentang|apa yang dimaksud|tolong jelaskan|apa arti|siapakah|apa|itu)/gi, '').trim();
-    
-    if (!keyword) {
-      return sendReply("Coba tanyakan sesuatu yang spesifik, misalnya 'Apa itu matahari?' atau 'Siapa Soekarno?'");
-    }
-
-    sendReply("Sebentar, saya cari informasinya...");
-
-    // Format kata kunci (huruf kapital di awal kata) untuk Wikipedia
-    const searchTopic = encodeURIComponent(keyword.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('_'));
+    sendReply("Sebentar, saya berpikir...");
 
     try {
-      // Mengambil data dari Wikipedia Bahasa Indonesia secara gratis & instan
-      const res = await fetch(`https://id.wikipedia.org/api/rest_v1/page/summary/${searchTopic}`);
+      // Menggunakan integrasi AI Generatif (LLM) sungguhan via Pollinations API (Gratis & Tanpa Key)
+      const systemPrompt = "Kamu adalah tutor pendidikan cerdas dan ramah dari aplikasi SCITOSY AI untuk pengguna tunanetra. Jawablah pertanyaan dengan ringkas, jelas, dan menggunakan kalimat maksimal 3 kalimat agar mudah didengar. Jangan gunakan simbol kompleks.";
+      const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(systemPrompt)}`;
+      
+      const res = await fetch(url);
       
       if (res.ok) {
-        const data = await res.json();
-        if (data.extract) {
-          // Ambil maksimal 2-3 kalimat pertama agar tidak terlalu panjang dibacakan
-          const sentences = data.extract.split('. ');
-          let finalReply = sentences.slice(0, 2).join('. ');
-          if (!finalReply.endsWith('.')) finalReply += '.';
-          
-          return sendReply(finalReply);
-        }
-      } else {
-        // Coba pencarian sekunder jika format judul Wikipedia tidak pas persis
-        const searchRes = await fetch(`https://id.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(keyword)}&utf8=&format=json&origin=*`);
-        const searchData = await searchRes.json();
+        let finalReply = await res.text();
         
-        if (searchData.query && searchData.query.search.length > 0) {
-          const firstHitTitle = searchData.query.search[0].title;
-          const detailRes = await fetch(`https://id.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstHitTitle.replace(/ /g, '_'))}`);
-          const detailData = await detailRes.json();
-          
-          if (detailData.extract) {
-            const sentences = detailData.extract.split('. ');
-            let finalReply = sentences.slice(0, 2).join('. ');
-            if (!finalReply.endsWith('.')) finalReply += '.';
-            return sendReply(finalReply);
-          }
-        }
+        // Membersihkan simbol markdown ganda jika ada (seperti ** atau *)
+        finalReply = finalReply.replace(/[*#_`]/g, '');
+        
+        return sendReply(finalReply);
+      } else {
+        throw new Error("Gagal mengambil data dari AI");
       }
     } catch (e) {
-      console.error("API Error", e);
+      console.error("AI Error", e);
+      return sendReply("Maaf, koneksi otak AI saya sedang terganggu internet. Coba tanyakan lagi nanti.");
     }
-
-    // 3. Fallback jika gagal mencari di internet
-    return sendReply(`Maaf, saya tidak dapat menemukan informasi akurat mengenai ${keyword} saat ini. Coba tanyakan topik lain.`);
   };
 
   const toggleListen = () => {
@@ -130,9 +97,9 @@ export default function AITutor() {
     <div className="p-8 md:p-12 lg:p-16 flex flex-col h-full min-h-[calc(100vh-48px)]">
       <header className="mb-8" tabIndex={0} onFocus={() => speak('Halaman Tutor AI. Gunakan mikrofon untuk berdiskusi soal materi.')}>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-950 mb-3 flex items-center gap-3">
-          <Bot className="text-lilac" /> Tutor AI Pintar
+          <Bot className="text-lilac" /> Tutor Generatif AI
         </h1>
-        <p className="text-zinc-500 text-lg">Ngobrol langsung dan tanyakan materi apapun, AI akan mencari jawabannya secara seketika.</p>
+        <p className="text-zinc-500 text-lg">Dilengkapi dengan mesin kecerdasan buatan sungguhan. AI dapat menganalisis dan menjawab pertanyaan rumit secara instan.</p>
       </header>
 
       <div className="flex-1 flex flex-col gap-6 max-w-3xl">
