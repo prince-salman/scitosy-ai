@@ -1,22 +1,35 @@
 "use client";
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 
 export const useTTS = () => {
+  const utterancesRef = useRef([]);
+
   const speak = useCallback((text, interrupt = true) => {
-    if (!text?.trim() || !window.speechSynthesis) return;
+    if (!text?.trim() || typeof window === 'undefined' || !window.speechSynthesis) return;
     if (interrupt) window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text.trim());
     utterance.lang = 'id-ID';
-    utterance.rate = 0.9;
+    utterance.rate = 1.6;
     
+    utterancesRef.current.push(utterance);
+
+    utterance.onend = () => {
+      utterancesRef.current = utterancesRef.current.filter(u => u !== utterance);
+    };
+
+    utterance.onerror = () => {
+      utterancesRef.current = utterancesRef.current.filter(u => u !== utterance);
+    };
+
     window.speechSynthesis.speak(utterance);
   }, []);
 
   const stop = useCallback(() => {
-    if (window.speechSynthesis) {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
+      utterancesRef.current = [];
     }
   }, []);
 
