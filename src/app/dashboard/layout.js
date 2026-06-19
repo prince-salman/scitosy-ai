@@ -23,16 +23,17 @@ export default function DashboardLayout({ children }) {
 
   const navItems = [
     { href: '/dashboard', label: 'Beranda', icon: Home },
-    { href: '/dashboard/audio', label: 'Audio Pembelajaran', icon: BookType },
-    { href: '/dashboard/pemindai', label: 'Pemindai Gambar', icon: Camera },
-    { href: '/dashboard/strategi', label: 'Strategi Belajar', icon: BookOpen },
-    { href: '/dashboard/motivasi', label: 'Motivasi Harian', icon: Heart },
-    { href: '/dashboard/tutor', label: 'Tutor AI Suara', icon: Bot },
+    { href: '/dashboard/audio', label: 'Audio', icon: BookType },
+    { href: '/dashboard/pemindai', label: 'Pemindai', icon: Camera },
+    { href: '/dashboard/strategi', label: 'Strategi', icon: BookOpen },
+    { href: '/dashboard/motivasi', label: 'Motivasi', icon: Heart },
+    { href: '/dashboard/tutor', label: 'AI Tutor', icon: Bot },
   ];
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <nav className="w-64 bg-zinc-50 border-r border-zinc-200 flex flex-col p-6">
+    <div className="flex min-h-screen bg-white pb-16 md:pb-0">
+      {/* Sidebar untuk Desktop */}
+      <nav className="hidden md:flex w-64 bg-zinc-50 border-r border-zinc-200 flex-col p-6 sticky top-0 h-screen">
         <div className="mb-10 px-2" tabIndex={0} onFocus={() => speak('Menu Navigasi Utama')}>
           <h2 className="text-xl font-bold tracking-tight text-zinc-950 mb-1">SCITOSY</h2>
           <span className="text-sm text-zinc-500">{user.name}</span>
@@ -66,9 +67,30 @@ export default function DashboardLayout({ children }) {
         </button>
       </nav>
 
+      {/* Konten Utama */}
       <main className="flex-1 flex flex-col min-w-0">
         {children}
       </main>
+
+      {/* Bottom Navigation untuk HP/Mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around items-center h-16 z-50 px-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        {navItems.map(item => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+          return (
+            <Link 
+              key={item.href} 
+              href={item.href}
+              aria-label={`Menu ${item.label}`}
+              onFocus={() => speak(`Menu ${item.label}`)}
+              className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${active ? 'text-lilac' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <Icon size={active ? 22 : 20} className={active ? 'fill-lilac/20' : ''} />
+              <span className="text-[10px] font-medium leading-none">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

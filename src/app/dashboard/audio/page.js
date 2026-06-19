@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTTS } from '@/hooks/useTTS';
 import { Card, Button } from '@/components/ui';
 import { Play, Square, Repeat } from 'lucide-react';
+import LessonChat from '@/components/ui/LessonChat';
 
 const LESSONS = [
   { id: 1, title: 'Proklamasi Kemerdekaan', subject: 'IPS', content: 'Indonesia memproklamasikan kemerdekaannya pada 17 Agustus 1945 di Jalan Pegangsaan Timur nomor 56. Teks dibacakan oleh Soekarno dan Hatta.' },
@@ -74,6 +75,8 @@ export default function AudioPlayer() {
                 {activeLesson.content}
               </p>
             </Card>
+
+            <LessonChat lessonContext={activeLesson.content} />
           </div>
         )}
       </div>

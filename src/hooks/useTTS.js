@@ -1,9 +1,30 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 
 export const useTTS = () => {
   const utterancesRef = useRef([]);
+  const [indonesianVoice, setIndonesianVoice] = useState(null);
+
+  // Memuat daftar suara dari sistem
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Mencari profil suara Indonesia (seperti 'Google Bahasa Indonesia')
+      const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id_ID' || v.lang === 'id' || v.name.includes('Indonesia'));
+      if (idVoice) {
+        setIndonesianVoice(idVoice);
+      }
+    };
+
+    // Chrome memuat suara secara asinkronus, jadi kita harus menangkap event ini
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   const speak = useCallback((text, interrupt = true) => {
     if (!text?.trim() || typeof window === 'undefined' || !window.speechSynthesis) return;
@@ -11,7 +32,12 @@ export const useTTS = () => {
     
     const utterance = new SpeechSynthesisUtterance(text.trim());
     utterance.lang = 'id-ID';
-    utterance.rate = 1.1;
+    utterance.rate = 1.1; // Kecepatan nyaman
+
+    // Memaksa browser menggunakan profil suara Indonesia agar tidak berubah jadi aksen Inggris
+    if (indonesianVoice) {
+      utterance.voice = indonesianVoice;
+    }
     
     utterancesRef.current.push(utterance);
 
@@ -24,7 +50,7 @@ export const useTTS = () => {
     };
 
     window.speechSynthesis.speak(utterance);
-  }, []);
+  }, [indonesianVoice]);
 
   const stop = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useTTS } from '@/hooks/useTTS';
 import { Card, Button, Input } from '@/components/ui';
 import { Keyboard, Mic, MessageSquare, Monitor, Play } from 'lucide-react';
+import LessonChat from '@/components/ui/LessonChat';
 
 const TABS = [
   { id: 'keyboard', label: 'Pintasan Keyboard', icon: Keyboard },
@@ -164,6 +165,10 @@ export default function Strategy() {
               </Card>
             </div>
           )}
+        </div>
+        
+        <div className="max-w-3xl mt-12">
+          <LessonChat lessonContext={`Materi strategi aksesibilitas tentang bagian: ${activeTab === 'keyboard' ? 'Pintasan Keyboard' : activeTab === 'reader' ? 'Screen Reader' : activeTab === 'voice' ? 'Catatan Suara' : 'Forum'}`} />
         </div>
       </div>
     </div>
