@@ -32,7 +32,6 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="flex min-h-screen bg-white pb-16 md:pb-0">
-      {/* Sidebar untuk Desktop */}
       <nav className="hidden md:flex w-64 bg-zinc-50 border-r border-zinc-200 flex-col p-6 sticky top-0 h-screen">
         <div className="mb-10 px-2" tabIndex={0} onFocus={() => speak('Menu Navigasi Utama')}>
           <h2 className="text-xl font-bold tracking-tight text-zinc-950 mb-1">SCITOSY</h2>
@@ -67,12 +66,10 @@ export default function DashboardLayout({ children }) {
         </button>
       </nav>
 
-      {/* Konten Utama */}
       <main className="flex-1 flex flex-col min-w-0">
         {children}
       </main>
 
-      {/* Bottom Navigation untuk HP/Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around items-center h-16 z-50 px-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         {navItems.map(item => {
           const Icon = item.icon;

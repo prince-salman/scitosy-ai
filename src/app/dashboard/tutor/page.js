@@ -47,7 +47,6 @@ export default function AITutor() {
       setTimeout(() => speak(reply), 500);
     };
 
-    // Respon lokal super cepat untuk sapaan dasar
     const lowerText = text.toLowerCase();
     if (lowerText === 'halo' || lowerText === 'hai') {
       return sendReply("Halo! Saya adalah Tutor AI pintar Anda. Ada pertanyaan pelajaran apa hari ini?");
@@ -56,7 +55,6 @@ export default function AITutor() {
     sendReply("Sebentar, saya berpikir...");
 
     try {
-      // Menggunakan integrasi AI Generatif (LLM) sungguhan via Pollinations API (Gratis & Tanpa Key)
       const systemPrompt = "Kamu adalah tutor pendidikan cerdas dan ramah dari aplikasi SCITOSY AI untuk pengguna tunanetra. Jawablah pertanyaan dengan ringkas, jelas, dan menggunakan kalimat maksimal 3 kalimat agar mudah didengar. Jangan gunakan simbol kompleks.";
       const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(systemPrompt)}`;
       
@@ -64,16 +62,13 @@ export default function AITutor() {
       
       if (res.ok) {
         let finalReply = await res.text();
-        
-        // Membersihkan simbol markdown ganda jika ada (seperti ** atau *)
         finalReply = finalReply.replace(/[*#_`]/g, '');
-        
         return sendReply(finalReply);
       } else {
         throw new Error("Gagal mengambil data dari AI");
       }
     } catch (e) {
-      console.error("AI Error", e);
+      console.error(e);
       return sendReply("Maaf, koneksi otak AI saya sedang terganggu internet. Coba tanyakan lagi nanti.");
     }
   };

@@ -62,7 +62,7 @@ export default function LessonChat({ lessonContext }) {
       speak('Apa ada yang masih kamu kurang pahami? Silakan bertanya.');
       setTimeout(() => {
         try { recognitionRef.current?.start(); } catch(e) {}
-      }, 3500); // Wait for the prompt to finish speaking
+      }, 3500);
     }
   };
 
