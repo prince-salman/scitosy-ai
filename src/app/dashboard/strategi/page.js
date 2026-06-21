@@ -70,9 +70,9 @@ export default function Strategy() {
             return (
               <button
                 key={tab.id}
-                onClick={() => { setActiveTab(tab.id); speak(`Tab ${tab.label}`); }}
+                onClick={() => { setActiveTab(tab.id); }}
                 className={`flex items-center gap-3 px-8 py-4 text-left transition-colors border-l-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-changeling ${isActive ? 'bg-bunny/60 border-l-changeling text-zinc-900' : 'border-l-transparent text-zinc-600 hover:bg-bunny/30'}`}
-                onFocus={() => speak(`Tab ${tab.label}`)}
+                aria-label={`Tab ${tab.label}`}
               >
                 <Icon size={18} />
                 <span className="font-medium text-sm">{tab.label}</span>
@@ -95,7 +95,7 @@ export default function Strategy() {
                     ['Tab', 'Pindah antar elemen'],
                     ['Enter / Space', 'Aktifkan elemen fokus']
                   ].map(([key, desc], i, arr) => (
-                    <div key={key} className={`flex justify-between pb-4 ${i !== arr.length - 1 ? 'border-b border-zinc-100' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm px-2 py-1`} tabIndex={0} onFocus={() => speak(`Tombol ${key}: ${desc}`)}>
+                    <div key={key} className={`flex justify-between pb-4 ${i !== arr.length - 1 ? 'border-b border-zinc-100' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm px-2 py-1`} tabIndex={0} aria-label={`Tombol ${key}: ${desc}`}>
                       <span className="font-semibold text-zinc-900">{key}</span>
                       <span className="text-sm text-zinc-500">{desc}</span>
                     </div>
@@ -110,11 +110,11 @@ export default function Strategy() {
               <h1 className="text-3xl font-bold tracking-tight text-zinc-950 mb-8">Panduan Screen Reader</h1>
               <Card>
                 <div className="flex flex-col gap-8">
-                  <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-2" tabIndex={0} onFocus={() => speak('NVDA dengan Firefox. Kombinasi yang paling disarankan.')}>
+                  <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-2" tabIndex={0} aria-label="NVDA dengan Firefox. Kombinasi yang paling disarankan.">
                     <h3 className="text-lg font-semibold text-zinc-900 mb-2">NVDA + Firefox</h3>
                     <p className="text-sm text-zinc-500 leading-relaxed">Kombinasi paling stabil untuk mengakses SCITOSY. Gunakan Insert + F7 untuk daftar elemen.</p>
                   </div>
-                  <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-2" tabIndex={0} onFocus={() => speak('Windows Narrator + Edge. Tekan Win + Ctrl + Enter untuk memulai.')}>
+                  <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-2" tabIndex={0} aria-label="Windows Narrator + Edge. Tekan Win + Ctrl + Enter untuk memulai.">
                     <h3 className="text-lg font-semibold text-zinc-900 mb-2">Windows Narrator + Edge</h3>
                     <p className="text-sm text-zinc-500 leading-relaxed">Tekan Windows + Ctrl + Enter untuk mengaktifkan Narrator.</p>
                   </div>
@@ -131,9 +131,9 @@ export default function Strategy() {
                   label="Judul Catatan"
                   value={noteTitle}
                   onChange={e => setNoteTitle(e.target.value)}
-                  onFocus={() => speak('Judul catatan')}
+                  aria-label="Judul Catatan"
                 />
-                <Button onClick={recording ? stopRecording : startRecording} variant={recording ? 'secondary' : 'primary'} onFocus={() => speak(recording ? 'Hentikan rekaman' : 'Mulai rekaman')}>
+                <Button onClick={recording ? stopRecording : startRecording} variant={recording ? 'secondary' : 'primary'} aria-label={recording ? 'Hentikan rekaman' : 'Mulai rekaman'}>
                   <Mic size={16} /> {recording ? 'Berhenti' : 'Rekam'}
                 </Button>
               </Card>
@@ -144,12 +144,12 @@ export default function Strategy() {
                   <p className="text-sm text-zinc-500">Belum ada catatan.</p>
                 ) : (
                   records.map((r, i) => (
-                    <Card key={i} className="flex justify-between items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950" tabIndex={0} onFocus={() => speak(`${r.title}, direkam pada ${r.date}`)}>
+                    <Card key={i} className="flex justify-between items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950" tabIndex={0} aria-label={`${r.title}, direkam pada ${r.date}`}>
                       <div>
                         <div className="font-medium text-zinc-900">{r.title}</div>
                         <div className="text-xs text-zinc-500 mt-1">{r.date}</div>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => new Audio(r.url).play()} onFocus={() => speak('Putar catatan')}><Play size={16}/></Button>
+                      <Button variant="ghost" size="sm" onClick={() => new Audio(r.url).play()} aria-label="Putar catatan"><Play size={16}/></Button>
                     </Card>
                   ))
                 )}

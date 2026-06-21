@@ -19,7 +19,6 @@ export default function AudioPlayer() {
   const handleSelect = (lesson) => {
     stop();
     setActiveLesson(lesson);
-    speak(`${lesson.title}. Siap diputar. Tekan tab ke tombol Putar.`);
   };
 
   const handlePlay = () => activeLesson && speak(activeLesson.content);
@@ -43,7 +42,7 @@ export default function AudioPlayer() {
                 key={lesson.id}
                 onClick={() => handleSelect(lesson)}
                 className={`px-8 py-4 text-left transition-colors border-l-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lilac ${isActive ? 'bg-bunny/60 border-l-lilac' : 'border-l-transparent hover:bg-bunny/30'}`}
-                onFocus={() => speak(`${lesson.title}, mata pelajaran ${lesson.subject}`)}
+                aria-label={`${lesson.title}, mata pelajaran ${lesson.subject}`}
               >
                 <div className="font-medium text-sm text-zinc-900">{lesson.title}</div>
                 <div className="text-xs text-zinc-500 mt-1">{lesson.subject}</div>
@@ -64,14 +63,14 @@ export default function AudioPlayer() {
             <p className="text-zinc-500 mb-10">{activeLesson.subject}</p>
             
             <div className="flex gap-3 mb-12">
-              <Button onClick={handlePlay} onFocus={() => speak('Putar')}><Play size={16}/> Putar</Button>
-              <Button variant="secondary" onClick={handleStop} onFocus={() => speak('Henti')}><Square size={16}/> Henti</Button>
-              <Button variant="ghost" onClick={handleRepeat} onFocus={() => speak('Ulangi')}><Repeat size={16}/> Ulangi</Button>
+              <Button onClick={handlePlay} aria-label="Putar"><Play size={16}/> Putar</Button>
+              <Button variant="secondary" onClick={handleStop} aria-label="Henti"><Square size={16}/> Henti</Button>
+              <Button variant="ghost" onClick={handleRepeat} aria-label="Ulangi"><Repeat size={16}/> Ulangi</Button>
             </div>
 
             <Card>
               <h3 className="text-xs font-semibold text-zinc-500 mb-4 uppercase tracking-wider">Transkrip</h3>
-              <p className="leading-relaxed text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-1" tabIndex={0} onFocus={() => speak('Area transkrip teks')}>
+              <p className="leading-relaxed text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 rounded-sm p-1" tabIndex={0}>
                 {activeLesson.content}
               </p>
             </Card>
